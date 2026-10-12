@@ -1,4 +1,6 @@
-# nifty-ml-alpha
+# Nifty ML Alpha
+
+[![tests](https://github.com/Subham1709/Nifty_ML_Alpha/actions/workflows/tests.yml/badge.svg)](https://github.com/Subham1709/Nifty_ML_Alpha/actions/workflows/tests.yml)
 
 Machine-learning return prediction on Nifty 100 stocks, with an honest answer to the
 question every quant interviewer asks: *"how do you know your backtest isn't leaking?"*
@@ -46,6 +48,7 @@ results/        tables and figures
 ## Quick start
 
 ```bash
+git clone https://github.com/Subham1709/Nifty_ML_Alpha && cd Nifty_ML_Alpha
 pip install -r requirements.txt
 python scripts/00_placebo_test.py  # pipeline on random-walk prices (no signal)
 python scripts/01_download.py      # daily OHLCV for the Nifty 100, 2010 onwards

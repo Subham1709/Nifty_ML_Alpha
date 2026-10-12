@@ -1,0 +1,23 @@
+name: download-data
+
+# Runs scripts/01_download.py on a GitHub runner and keeps prices.parquet as a
+# workflow artifact (not committed: the raw data stays out of the repo).
+on:
+  workflow_dispatch:
+
+jobs:
+  download:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - run: python scripts/01_download.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: prices
+          path: data/prices.parquet
+          retention-days: 30
