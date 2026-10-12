@@ -158,20 +158,20 @@ are pure random walks (2011-2018). There is *nothing* to predict: the true IC is
 the true Sharpe of every strategy is 0.
 
 **Result** (LightGBM, long-short quintiles, net of 15 bps costs; full table in
-`results/placebo/summary.md`):
+`results/placebo/summary.md`, produced by the GitHub Actions run):
 
 | Validation | Mean IC | IC t-stat | Net Sharpe |
 |---|---|---|---|
-| Naive K-fold | **0.272** | 16.8 | **5.48** |
-| Purged K-fold | -0.006 | -0.3 | -0.47 |
-| Walk-forward | 0.001 | 0.1 | -0.14 |
+| Naive K-fold | **0.270** | 16.7 | **5.05** |
+| Purged K-fold | -0.007 | -0.4 | -0.32 |
+| Walk-forward | -0.001 | -0.0 | -0.24 |
 
-Naive K-fold "finds" a Sharpe of 5.5 in pure noise. Purged K-fold and walk-forward
+Naive K-fold "finds" a Sharpe of 5 in pure noise. Purged K-fold and walk-forward
 correctly find nothing. That one table is the whole argument for this project's
 methodology, and it was produced on data where we *know* the right answer.
 
-**A second lesson in the same table.** Ridge under walk-forward shows IC 0.037 with a
-t-stat of 2.2 on the same noise (see the full table). It isn't leakage (walk-forward is
+**A second lesson in the same table.** Ridge under walk-forward shows IC 0.038 with a
+t-stat of 2.3 on the same noise (see the full table). It isn't leakage (walk-forward is
 leak-free by construction and tested); it's luck. We ran six model/validation
 combinations, and with that many tries one t-stat above 2 by chance is unsurprising.
 This is the *multiple-testing* problem, and it is why López de Prado's Deflated Sharpe
@@ -211,3 +211,138 @@ so costs are 4 × 15 bps = 0.6% a month, about 7% a year. Many "great" signals d
 **Interview lines.**
 - "What IC is good?" 0.02-0.05 for monthly equity signals.
 - "Your gross Sharpe is X, net is Y. Why the gap?" Turnover × cost per trade.
+
+---
+
+## Step 7. Cleaning real data (`src/alpha/clean.py`, `scripts/01b_data_report.py`)
+
+**What.** Every run writes `results/data_report.md`: rows removed, stocks per year, late
+listings, every one-day move over 35%, and a survivorship check.
+
+**What the report found.** 6 one-day moves over 35%. Each was checked by hand:
+
+| Stock | Date | Move | Verdict |
+|---|---|---|---|
+| ADANIENT | 2015-06-03 | -38.7% | demerger of Adani Transmission: fixed |
+| CANBK | 2017-10-25 | +38.7% | real: government bank recapitalisation plan, kept |
+| PNB | 2017-10-25 | +46.2% | real: same news, kept |
+| INDUSINDBK | 2020-03-26 | +44.7% | real: rebound after the COVID crash, kept |
+| TATAMOTORS | 2025-10-14 | -40.2% | demerger of the commercial-vehicle business: fixed |
+| VEDL | 2026-04-30 | -64.9% | demerger of Vedanta's businesses (inferred): fixed |
+
+A demerger isn't a loss for shareholders: they receive shares of the new company. Yahoo
+didn't adjust these three, so the data showed fake crashes. `neutralise_jumps` rescales
+the adjusted price before each event so that day's return is zero. The bank moves are
+real and stay in. *Never delete a big move just because it is big;* removing real crashes
+makes a strategy look safer than it is.
+
+**Missing symbols.** LTIM, PFC and TATAMOTORS failed in the first batch download. The
+downloader now retries each failed ticker on its own, then under its new symbol if it was
+renamed (`ALIASES` in `universe.py`, e.g. Tata Motors became TMPV after its demerger).
+All 98 stocks now have data.
+
+**Survivorship bias, measured.** From 2011:
+
+| Series | Annual growth |
+|---|---|
+| Equal-weight, today's 98 constituents (total return) | 19.2% |
+| Nifty 100 index (price only) | 9.1% |
+| Nifty 50 index (price only) | 8.6% |
+
+Owning *today's* Nifty 100 equally since 2011 grew about 10 percentage points a
+year faster than the actual index. Part of that is equal weighting and dividends (the
+index here is price-only), but much of it is hindsight: the list already contains the
+winners. That's why the long-short result is the one to trust here. Both legs come from
+the same biased list, so much of the bias cancels, whereas the long-only result is
+inflated by it.
+
+**Interview lines.**
+- "How did you clean the data?" Duplicates, zero-volume days, unadjusted corporate
+  actions found by a jump screen and verified by hand.
+- "How big is survivorship bias in your data?" Give the number above.
+
+---
+
+## Step 8. Real results (`results/summary.md`)
+
+98 Nifty 100 stocks, daily data 2010-01 to 2026-09, 336,189 stock-days. Long-short
+quintiles rebalanced every 21 trading days, 15 bps costs.
+
+| Validation | Model | Mean IC | Net Sharpe |
+|---|---|---|---|
+| Naive shuffled K-fold | ridge | 0.069 | 1.31 |
+| Naive shuffled K-fold | lightgbm | 0.171 | 3.95 |
+| Purged + embargoed K-fold | ridge | 0.047 | 0.89 |
+| Purged + embargoed K-fold | lightgbm | 0.041 | 0.67 |
+| Walk-forward | ridge | 0.048 | 1.07 |
+| Walk-forward | lightgbm | 0.030 | 0.51 |
+
+**Finding 1: naive K-fold inflates results, and far more for the flexible model.**
+LightGBM's net Sharpe falls from 3.95 (shuffled K-fold) to
+0.51 (walk-forward), 8x lower; its IC falls from
+0.171 to 0.030. Ridge only falls from 1.31 to
+1.07. A model with more capacity can memorise more of the leaked
+neighbouring samples, so leakage hurts it most. This is the same pattern as the BTP,
+where XGBoost looked best on a random split and worst on unseen regions.
+
+**Finding 2: purged K-fold and walk-forward agree.** Purged LightGBM IC 0.041
+vs walk-forward 0.030. Purging and embargo remove the leak; the remaining gap is
+that purged K-fold also trains on future years.
+
+**Finding 3: the simple model wins out of sample.** Walk-forward ridge: IC
+0.048, net Sharpe 1.07. LightGBM: IC 0.030, net
+Sharpe 0.51. With signals this weak and noisy, a linear model on ranked
+features is hard to beat, and LightGBM also trades more (turnover 2.12 vs
+1.68 per rebalance), so it pays more in costs. Reporting this, instead of
+tuning LightGBM until it wins on the test years, is the honest result. Tuning on the
+test period would be another form of leakage.
+
+**Finding 4: the signal is small and unstable.** Walk-forward LightGBM IC was
+positive in 8 of 12 years (`results/ic_by_year.md`). Costs matter:
+the long-short Sharpe goes 0.85 → 0.52 → 0.18 at 0, 15 and
+30 bps (`results/cost_sensitivity.md`).
+
+**What the model uses** (`results/feature_importance.md`): liquidity/size
+(`log_dollar_vol`), 12-1 momentum and 3-month volatility carry the most weight, which
+matches the size, momentum and low-volatility effects in the factor literature.
+
+---
+
+## Step 9. How to talk about this project
+
+**Resume line.**
+> Built a leak-free ML stock-selection pipeline on Nifty 100 (2010-2026, 98 stocks,
+> LightGBM vs ridge); showed shuffled K-fold inflated LightGBM's net Sharpe 8x
+> (3.9 vs 0.5) and validated purged/embargoed CV with a
+> random-walk placebo test; a ridge baseline reached walk-forward IC 0.048 and
+> net Sharpe 1.1 after costs.
+
+**Two-minute version.** "I predicted which Nifty 100 stocks would beat the others over
+the next month. The labels overlap, so shuffled cross-validation leaks: on pure random
+walks it found a Sharpe of 5. I used purged and embargoed K-fold plus walk-forward,
+checked them with that placebo test, and found the real out-of-sample Sharpe was 8
+times lower than the naive one for LightGBM. A ridge baseline actually did better, which
+taught me that with weak signals, validation and costs matter more than model
+complexity. It's the same lesson as my BTP, where spatial-block CV exposed a random
+split."
+
+**Questions to be ready for.**
+- Why is the IC so low? Monthly equity returns are mostly noise; 0.03-0.05 is normal,
+  and it compounds across ~100 stocks and 12 rebalances a year.
+- Why did LightGBM lose? Weak signal, more variance, more turnover. You'd need
+  regularisation tuned with an *inner* purged CV, or ensembling with ridge.
+- What would you do next? Point-in-time index membership (survivorship), the Deflated
+  Sharpe Ratio for multiple testing, sector neutralisation, and fundamental features.
+
+---
+
+## Step 10. Limitations and next steps
+
+- **Survivorship bias**: current constituents only (measured in step 7). Fix with NSE's
+  historical index files.
+- **Multiple testing**: six model/validation combinations were run. The Deflated Sharpe
+  Ratio would adjust the headline numbers for that.
+- **Costs** are a flat 15 bps; real costs depend on liquidity and trade size, and a
+  long-short book via stock futures adds margin and roll costs.
+- **No sector neutralisation**: part of the signal may be sector bets.
+- **Price and volume only**: no fundamentals, news or ownership data.
