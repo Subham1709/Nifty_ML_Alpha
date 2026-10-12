@@ -29,10 +29,12 @@ def make_model(name: str, seed: int = 0):
     raise ValueError(name)
 
 
-def oos_predictions(df, features, splits, model_name: str) -> np.ndarray:
+def oos_predictions(df, features, splits, model_name: str,
+                    importances: list | None = None) -> np.ndarray:
     """Out-of-sample predictions: each row is predicted by a model that never trained on it.
 
     Rows that no split tests (e.g. the first years in walk-forward) stay NaN.
+    If `importances` is a list, each fitted LightGBM model's gain importances are appended.
     """
     pred = np.full(len(df), np.nan)
     X, y = df[features].to_numpy(), df["target"].to_numpy()
@@ -40,4 +42,7 @@ def oos_predictions(df, features, splits, model_name: str) -> np.ndarray:
         m = make_model(model_name)
         m.fit(np.nan_to_num(X[train_idx]), y[train_idx])
         pred[test_idx] = m.predict(np.nan_to_num(X[test_idx]))
+        if importances is not None and model_name == "lightgbm":
+            gain = m.booster_.feature_importance(importance_type="gain")
+            importances.append(gain / gain.sum())
     return pred
