@@ -30,6 +30,8 @@ def rebalance_dates(dates: pd.Series, every: int = 21) -> pd.DatetimeIndex:
 def information_coefficient(df: pd.DataFrame, pred_col: str = "pred") -> pd.Series:
     """Spearman rank correlation between prediction and realised return, per date."""
     d = df.dropna(subset=[pred_col])
+    # skip stray dates where only a few stocks traded; no rebalance happens on them anyway
+    d = d[d.groupby("date")["ticker"].transform("size") >= 10]
     return d.groupby("date").apply(
         lambda g: g[pred_col].rank().corr(g["fwd_ret"].rank()), include_groups=False
     )
