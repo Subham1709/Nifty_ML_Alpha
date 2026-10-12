@@ -23,9 +23,9 @@ net of 15 bps trading costs.
 
 | Validation | Model | Mean IC | Net Sharpe | Net annual return |
 |---|---|---|---|---|
-| Naive shuffled K-fold | LightGBM | 0.171 | **3.95** | 58.1% |
-| Purged + embargoed K-fold | LightGBM | 0.041 | 0.67 | 8.2% |
-| Walk-forward | LightGBM | 0.030 | **0.51** | 5.4% |
+| Naive shuffled K-fold | LightGBM | 0.173 | **3.68** | 55.0% |
+| Purged + embargoed K-fold | LightGBM | 0.042 | 0.66 | 8.2% |
+| Walk-forward | LightGBM | 0.031 | **0.53** | 5.7% |
 | Naive shuffled K-fold | Ridge | 0.069 | 1.31 | 18.3% |
 | Purged + embargoed K-fold | Ridge | 0.047 | 0.89 | 11.9% |
 | Walk-forward | Ridge | 0.048 | **1.07** | 14.7% |
@@ -36,15 +36,15 @@ Full tables: [`results/summary.md`](results/summary.md),
 
 **What this shows**
 
-- **Shuffled K-fold inflated LightGBM's Sharpe about 8x** (3.95 vs 0.51). Labels on
+- **Shuffled K-fold inflated LightGBM's Sharpe about 7x** (3.68 vs 0.53). Labels on
   consecutive days share 20 of their 21 days, so a shuffled split lets the model memorise
   its neighbours. The more flexible model leaks far more: ridge only drops from 1.31
   to 1.07.
 - **Purged K-fold and walk-forward agree**, so purging and embargo remove the leak.
 - **The simple model wins out of sample.** With a weak, noisy signal, ridge beat LightGBM
-  on IC (0.048 vs 0.030) and on Sharpe after costs. LightGBM also traded more.
+  on IC (0.048 vs 0.031) and on Sharpe after costs. LightGBM also traded more.
 - **The signal is small and unstable**: walk-forward IC was positive in 8 of 12 years,
-  and the LightGBM long-short Sharpe falls from 0.85 to 0.18 as costs go from 0 to 30 bps.
+  and the LightGBM long-short Sharpe falls from 0.85 to 0.21 as costs go from 0 to 30 bps.
 
 ## Placebo test: does the validation work?
 

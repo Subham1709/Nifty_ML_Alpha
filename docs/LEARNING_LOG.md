@@ -271,27 +271,27 @@ quintiles rebalanced every 21 trading days, 15 bps costs.
 | Validation | Model | Mean IC | Net Sharpe |
 |---|---|---|---|
 | Naive shuffled K-fold | ridge | 0.069 | 1.31 |
-| Naive shuffled K-fold | lightgbm | 0.171 | 3.95 |
+| Naive shuffled K-fold | lightgbm | 0.173 | 3.68 |
 | Purged + embargoed K-fold | ridge | 0.047 | 0.89 |
-| Purged + embargoed K-fold | lightgbm | 0.041 | 0.67 |
+| Purged + embargoed K-fold | lightgbm | 0.042 | 0.66 |
 | Walk-forward | ridge | 0.048 | 1.07 |
-| Walk-forward | lightgbm | 0.030 | 0.51 |
+| Walk-forward | lightgbm | 0.031 | 0.53 |
 
 **Finding 1: naive K-fold inflates results, and far more for the flexible model.**
-LightGBM's net Sharpe falls from 3.95 (shuffled K-fold) to
-0.51 (walk-forward), 8x lower; its IC falls from
-0.171 to 0.030. Ridge only falls from 1.31 to
+LightGBM's net Sharpe falls from 3.68 (shuffled K-fold) to
+0.53 (walk-forward), 7x lower; its IC falls from
+0.173 to 0.031. Ridge only falls from 1.31 to
 1.07. A model with more capacity can memorise more of the leaked
 neighbouring samples, so leakage hurts it most. This is the same pattern as the BTP,
 where XGBoost looked best on a random split and worst on unseen regions.
 
-**Finding 2: purged K-fold and walk-forward agree.** Purged LightGBM IC 0.041
-vs walk-forward 0.030. Purging and embargo remove the leak; the remaining gap is
+**Finding 2: purged K-fold and walk-forward agree.** Purged LightGBM IC 0.042
+vs walk-forward 0.031. Purging and embargo remove the leak; the remaining gap is
 that purged K-fold also trains on future years.
 
 **Finding 3: the simple model wins out of sample.** Walk-forward ridge: IC
-0.048, net Sharpe 1.07. LightGBM: IC 0.030, net
-Sharpe 0.51. With signals this weak and noisy, a linear model on ranked
+0.048, net Sharpe 1.07. LightGBM: IC 0.031, net
+Sharpe 0.53. With signals this weak and noisy, a linear model on ranked
 features is hard to beat, and LightGBM also trades more (turnover 2.12 vs
 1.68 per rebalance), so it pays more in costs. Reporting this, instead of
 tuning LightGBM until it wins on the test years, is the honest result. Tuning on the
@@ -299,8 +299,17 @@ test period would be another form of leakage.
 
 **Finding 4: the signal is small and unstable.** Walk-forward LightGBM IC was
 positive in 8 of 12 years (`results/ic_by_year.md`). Costs matter:
-the long-short Sharpe goes 0.85 → 0.52 → 0.18 at 0, 15 and
+the long-short Sharpe goes 0.85 → 0.53 → 0.21 at 0, 15 and
 30 bps (`results/cost_sensitivity.md`).
+
+**A lesson about reproducibility.** The first real run downloaded its own prices; the
+final run used the snapshot now committed in `data/`, on a different GitHub runner.
+Ridge barely moved (fourth decimal), but naive LightGBM's Sharpe went from 3.95 to 3.68.
+The cause is either a few values Yahoo revised between downloads or floating-point
+differences between machines; we can't tell which, because the first download wasn't
+kept. Either way, trees split on thresholds, so a tiny change can flip a split, and a
+leaky model that memorises noise is the most fragile of all. That's why the exact data
+snapshot is now committed: every number in `results/` can be reproduced from it.
 
 **What the model uses** (`results/feature_importance.md`): liquidity/size
 (`log_dollar_vol`), 12-1 momentum and 3-month volatility carry the most weight, which
@@ -312,15 +321,15 @@ matches the size, momentum and low-volatility effects in the factor literature.
 
 **Resume line.**
 > Built a leak-free ML stock-selection pipeline on Nifty 100 (2010-2026, 98 stocks,
-> LightGBM vs ridge); showed shuffled K-fold inflated LightGBM's net Sharpe 8x
-> (3.9 vs 0.5) and validated purged/embargoed CV with a
+> LightGBM vs ridge); showed shuffled K-fold inflated LightGBM's net Sharpe 7x
+> (3.7 vs 0.5) and validated purged/embargoed CV with a
 > random-walk placebo test; a ridge baseline reached walk-forward IC 0.048 and
 > net Sharpe 1.1 after costs.
 
 **Two-minute version.** "I predicted which Nifty 100 stocks would beat the others over
 the next month. The labels overlap, so shuffled cross-validation leaks: on pure random
 walks it found a Sharpe of 5. I used purged and embargoed K-fold plus walk-forward,
-checked them with that placebo test, and found the real out-of-sample Sharpe was 8
+checked them with that placebo test, and found the real out-of-sample Sharpe was 7
 times lower than the naive one for LightGBM. A ridge baseline actually did better, which
 taught me that with weak signals, validation and costs matter more than model
 complexity. It's the same lesson as my BTP, where spatial-block CV exposed a random
