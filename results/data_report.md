@@ -45,10 +45,10 @@ equally big `ret` on a known split/bonus date means Yahoo failed to adjust.
 | CANBK      | 2017-10-25 |  87.980 |      74.463 |  0.387 |     0.387 | kept, real: government's public-sector bank recapitalisation plan                |
 | INDUSINDBK | 2020-03-26 | 435.900 |     420.270 |  0.447 |     0.447 | kept, real: rebound after the COVID crash                                        |
 | PNB        | 2017-10-25 | 202.050 |     182.175 |  0.462 |     0.462 | kept, real: government's public-sector bank recapitalisation plan                |
-| TATAMOTORS | 2025-10-14 | 395.450 |     392.197 | -0.402 |    -0.402 | NOT REVIEWED                                                                     |
+| TATAMOTORS | 2025-10-14 | 395.450 |     392.197 | -0.402 |    -0.402 | fixed: demerger of the commercial-vehicle business (2025)                        |
 | VEDL       | 2026-04-30 | 271.550 |     271.550 | -0.649 |    -0.649 | fixed: demerger of Vedanta's businesses (inferred from the -65% unadjusted drop) |
 
-Unreviewed jumps: 1
+Unreviewed jumps: 0
 
 ## Survivorship check
 
