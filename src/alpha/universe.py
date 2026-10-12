@@ -26,7 +26,14 @@ NIFTY_100 = [
     "TVSMOTOR", "UNITDSPR", "VBL", "VEDL", "ZYDUSLIFE",
 ]
 
-BENCHMARK = "^NSEI"  # Nifty 50 index on Yahoo Finance
+# Symbols that changed on Yahoo after a rename or demerger (tried if the main one fails)
+ALIASES = {
+    "TATAMOTORS": ["TMPV"],  # passenger-vehicle business after the 2025 demerger
+    "LTIM": ["LTM"],
+}
+
+# Index levels used as benchmarks (Yahoo symbol -> name)
+INDICES = {"^CNX100": "NIFTY100", "^NSEI": "NIFTY50"}
 
 
 def yahoo_symbol(nse_symbol: str) -> str:
