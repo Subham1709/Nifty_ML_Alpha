@@ -11,10 +11,13 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from alpha.data import DATA_DIR, PRICES_PATH, download_prices  # noqa: E402
 from alpha.universe import NIFTY_100  # noqa: E402
 
+# Fixed window so results are reproducible (yfinance treats `end` as exclusive).
+START, END = "2010-01-01", "2026-10-01"
+
 
 def main() -> None:
     DATA_DIR.mkdir(exist_ok=True)
-    prices = download_prices(NIFTY_100, start="2010-01-01")
+    prices = download_prices(NIFTY_100, start=START, end=END)
     prices.to_parquet(PRICES_PATH, index=False)
     n = prices["ticker"].nunique()
     print(f"saved {len(prices):,} rows for {n} stocks, "

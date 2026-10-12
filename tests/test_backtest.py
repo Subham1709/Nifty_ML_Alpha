@@ -20,3 +20,13 @@ def test_costs_reduce_returns(fake_prices):
     lab["pred"] = np.random.default_rng(2).normal(size=len(lab))
     bt = run_backtest(lab, cost_bps=50, min_stocks=5)
     assert (bt["long_short_net"] <= bt["long_short_gross"]).all()
+
+
+def test_clean_prices_removes_bad_rows(fake_prices):
+    from alpha.clean import clean_prices
+    bad = fake_prices.copy()
+    bad.loc[5, "volume"] = 0
+    bad = pd.concat([bad, bad.iloc[[10]]])
+    out = clean_prices(bad)
+    assert len(out) == len(fake_prices) - 1
+    assert not out.duplicated(["ticker", "date"]).any()
