@@ -67,6 +67,8 @@ validation on unseen regions.
 ## Data and its problems
 
 - Daily OHLCV from Yahoo Finance for today's Nifty 100 constituents, 2010-01 to 2026-09.
+  The exact snapshot behind every result is in [`data/`](data/README.md), so nothing needs
+  downloading to reproduce the numbers.
 - A jump screen flags every one-day move over 35%. Three were unadjusted demergers
   (Adani Enterprises 2015, Tata Motors 2025, Vedanta 2026) and are neutralised; three
   were real moves (PSU bank recapitalisation 2017, the COVID rebound) and are kept.
@@ -90,13 +92,15 @@ git clone https://github.com/Subham1709/Nifty_ML_Alpha && cd Nifty_ML_Alpha
 pip install -r requirements.txt
 pytest                               # look-ahead, leakage, backtest and cleaning tests
 python scripts/00_placebo_test.py    # pipeline on random-walk prices (no signal)
-python scripts/01_download.py        # Nifty 100 prices + indices, 2010-01 to 2026-09
 python scripts/01b_data_report.py    # data checks -> results/data_report.md
 python scripts/02_run_experiment.py  # 3 validation schemes x 2 models -> results/
 ```
 
-Or run the **experiment** workflow from the Actions tab: it does all of the above on a
-GitHub runner and commits `results/`. The numbers above come from that run; different
+The data is already in `data/`. To refresh it with newer prices, run
+`python scripts/01_download.py` (after editing its date window), then the two steps above.
+
+Or run the **experiment** workflow from the Actions tab: it does the same on a GitHub
+runner using the data in `data/` and commits `results/`. The numbers above come from that run; different
 library versions can move them in the second decimal.
 
 ## Layout
@@ -106,6 +110,7 @@ src/alpha/      universe, data, cleaning, features, labels, CV, models, backtest
 scripts/        runnable steps 00-02
 tests/          look-ahead, purging, backtest and cleaning tests
 docs/           learning log: what each step does, why, and interview notes
+data/           price snapshot used for all results (Yahoo Finance, 2010-2026)
 results/        tables and figures (committed by the experiment workflow)
 ```
 

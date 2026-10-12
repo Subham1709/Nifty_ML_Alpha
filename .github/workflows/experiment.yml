@@ -1,8 +1,8 @@
 name: experiment
 
-# Full real-data run: download prices, check them, run the experiment, and commit
-# the results/ folder back to the repo. Raw prices stay out of the repo; they are kept
-# as a workflow artifact instead.
+# Full real-data run on the committed data snapshot in data/: check the data, run the
+# placebo test and the experiment, and commit results/ back to the repo.
+# (If data/ is empty, it downloads the prices first.)
 on:
   workflow_dispatch:
 
@@ -20,15 +20,10 @@ jobs:
           python-version: "3.11"
           cache: pip
       - run: pip install -r requirements.txt
-      - run: python scripts/01_download.py
+      - run: test -f data/prices.parquet || python scripts/01_download.py
       - run: python scripts/01b_data_report.py
       - run: python scripts/00_placebo_test.py
       - run: python scripts/02_run_experiment.py
-      - uses: actions/upload-artifact@v4
-        with:
-          name: prices
-          path: data/prices.parquet
-          retention-days: 30
       - name: Commit results
         run: |
           git config user.name "github-actions[bot]"

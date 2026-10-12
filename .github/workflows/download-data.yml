@@ -1,9 +1,12 @@
 name: download-data
 
-# Runs scripts/01_download.py on a GitHub runner and keeps prices.parquet as a
-# workflow artifact (not committed: the raw data stays out of the repo).
+# Downloads a fresh copy of the prices on a GitHub runner and commits it to data/.
+# Run this only to refresh the snapshot; the experiment workflow uses whatever is in data/.
 on:
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   download:
@@ -16,8 +19,11 @@ jobs:
           cache: pip
       - run: pip install -r requirements.txt
       - run: python scripts/01_download.py
-      - uses: actions/upload-artifact@v4
-        with:
-          name: prices
-          path: data/prices.parquet
-          retention-days: 30
+      - name: Commit data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/prices.parquet data/indices.parquet
+          git commit -m "Update data snapshot from download run ${{ github.run_id }}" || echo "no changes"
+          git pull --rebase origin main
+          git push origin HEAD:main

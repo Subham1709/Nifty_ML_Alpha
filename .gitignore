@@ -2,6 +2,8 @@ __pycache__/
 *.pyc
 .ipynb_checkpoints/
 data/*.parquet
+!data/prices.parquet
+!data/indices.parquet
 data/*.csv
 !data/README.md
 .venv/
