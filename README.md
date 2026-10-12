@@ -14,6 +14,21 @@ The gap between the two is the point of the project. It is the finance version o
 random-split vs spatial-block result in my B.Tech project on landslide susceptibility,
 where a random split made the model look far better than it really was.
 
+## First result: the placebo test
+
+Before using real data, the full pipeline was run on 40 fake stocks whose prices are pure
+random walks, so the true IC and true Sharpe are exactly zero
+([`scripts/00_placebo_test.py`](scripts/00_placebo_test.py)):
+
+| LightGBM, long-short, net of 15 bps | Mean IC | Net Sharpe |
+|---|---|---|
+| Naive shuffled K-fold | 0.272 | **5.48** |
+| Purged + embargoed K-fold | -0.006 | -0.47 |
+| Walk-forward | 0.001 | -0.14 |
+
+Naive K-fold finds a Sharpe of 5.5 in pure noise. The leak-free methods correctly find
+nothing. Real-data results follow below once the data step has run.
+
 > Work in progress. See [`docs/LEARNING_LOG.md`](docs/LEARNING_LOG.md) for the
 > step-by-step notes on what was done and why.
 
@@ -32,5 +47,8 @@ results/        tables and figures
 
 ```bash
 pip install -r requirements.txt
+python scripts/00_placebo_test.py  # pipeline on random-walk prices (no signal)
 python scripts/01_download.py      # daily OHLCV for the Nifty 100, 2010 onwards
+python scripts/02_run_experiment.py  # features, 3 validation schemes, backtest -> results/
+pytest                             # look-ahead and leakage tests
 ```
