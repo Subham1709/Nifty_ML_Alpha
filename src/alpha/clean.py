@@ -21,6 +21,7 @@ import pandas as pd
 # the demerged companies, so their wealth did not fall the way the price did.
 UNADJUSTED_ACTIONS = {
     ("ADANIENT", "2015-06-03"): "demerger of Adani Transmission (2015)",
+    ("TATAMOTORS", "2025-10-14"): "demerger of the commercial-vehicle business (2025)",
     ("VEDL", "2026-04-30"): "demerger of Vedanta's businesses (inferred from the -65% unadjusted drop)",
 }
 
