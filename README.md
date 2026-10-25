@@ -2,6 +2,8 @@
 
 [![tests](https://github.com/Subham1709/Nifty_ML_Alpha/actions/workflows/tests.yml/badge.svg)](https://github.com/Subham1709/Nifty_ML_Alpha/actions/workflows/tests.yml)
 
+**Live app:** [subham-nifty-ml-alpha.streamlit.app](https://subham-nifty-ml-alpha.streamlit.app): change trading costs and watch the leaky backtest and the honest one diverge.
+
 Machine-learning stock selection on the Nifty 100, built around the question every quant
 interviewer asks: *"how do you know your backtest isn't leaking?"*
 
@@ -53,9 +55,9 @@ IC and Sharpe are exactly zero ([`scripts/00_placebo_test.py`](scripts/00_placeb
 
 | LightGBM, long-short, net of 15 bps | Mean IC | Net Sharpe |
 |---|---|---|
-| Naive shuffled K-fold | 0.270 | **5.05** |
-| Purged + embargoed K-fold | -0.007 | -0.32 |
-| Walk-forward | -0.001 | -0.24 |
+| Naive shuffled K-fold | 0.272 | **5.48** |
+| Purged + embargoed K-fold | -0.006 | -0.47 |
+| Walk-forward | 0.001 | -0.14 |
 
 Naive K-fold finds a Sharpe of 5 in pure noise; the leak-free methods correctly find
 nothing.
@@ -109,6 +111,7 @@ library versions can move them in the second decimal.
 src/alpha/      universe, data, cleaning, features, labels, CV, models, backtest
 scripts/        runnable steps 00-02
 tests/          look-ahead, purging, backtest and cleaning tests
+app/            Streamlit web app (precomputed predictions, live backtest)
 docs/           learning log: what each step does, why, and interview notes
 data/           price snapshot used for all results (Yahoo Finance, 2010-2026)
 results/        tables and figures (committed by the experiment workflow)
