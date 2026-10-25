@@ -158,20 +158,21 @@ are pure random walks (2011-2018). There is *nothing* to predict: the true IC is
 the true Sharpe of every strategy is 0.
 
 **Result** (LightGBM, long-short quintiles, net of 15 bps costs; full table in
-`results/placebo/summary.md`, produced by the GitHub Actions run):
+`results/placebo/summary.md`; rerun on 2026-10-25 with the committed code, which moved
+the numbers slightly from the first GitHub Actions run, e.g. 5.05 to 5.48):
 
 | Validation | Mean IC | IC t-stat | Net Sharpe |
 |---|---|---|---|
-| Naive K-fold | **0.270** | 16.7 | **5.05** |
-| Purged K-fold | -0.007 | -0.4 | -0.32 |
-| Walk-forward | -0.001 | -0.0 | -0.24 |
+| Naive K-fold | **0.272** | 16.8 | **5.48** |
+| Purged K-fold | -0.006 | -0.3 | -0.47 |
+| Walk-forward | 0.001 | 0.1 | -0.14 |
 
 Naive K-fold "finds" a Sharpe of 5 in pure noise. Purged K-fold and walk-forward
 correctly find nothing. That one table is the whole argument for this project's
 methodology, and it was produced on data where we *know* the right answer.
 
-**A second lesson in the same table.** Ridge under walk-forward shows IC 0.038 with a
-t-stat of 2.3 on the same noise (see the full table). It isn't leakage (walk-forward is
+**A second lesson in the same table.** Ridge under walk-forward shows IC 0.037 with a
+t-stat of 2.2 on the same noise (see the full table). It isn't leakage (walk-forward is
 leak-free by construction and tested); it's luck. We ran six model/validation
 combinations, and with that many tries one t-stat above 2 by chance is unsurprising.
 This is the *multiple-testing* problem, and it is why López de Prado's Deflated Sharpe
